@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>离合器静摩擦力矩 Tc 计算工具 — 公式(2-7)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --ink:   #1a1a2e;
+  --paper: #f5f0e8;
+  --warm:  #ede8dc;
+  --line:  #c8bfaa;
+  --gold:  #b8860b;
+  --gold2: #d4a017;
+  --rust:  #8b3a2a;
+  --rust2: #c0472e;
+  --teal:  #1a5c6b;
+  --teal2: #2a8fa0;
+  --text:  #2c2c3a;
+  --dim:   #7a7060;
+  --mono:  'JetBrains Mono', monospace;
+  --serif: 'Cinzel', serif;
+  --body:  'Source Sans 3', sans-serif;
+  --shadow: 0 4px 24px rgba(26,26,46,.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--body);
+  background: var(--paper);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 16px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── Blueprint grid background ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(26,92,107,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,92,107,.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+/* ── Header ── */
+header {
+  position: relative; z-index: 10;
+  background: var(--ink);
+  border-bottom: 3px solid var(--gold);
+  padding: 0 40px;
+  display: flex; align-items: center; gap: 20px;
+  min-height: 84px;
+}
+header::after {
+  content: '';
+  position: absolute; bottom: -6px; left: 0; right: 0;
+  height: 3px; background: var(--rust2); opacity: .5;
+}
+.logo-mark {
+  width: 58px; height: 58px; flex-shrink: 0;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 28px; color: var(--gold);
+  position: relative;
+}
+.logo-mark::before {
+  content: '';
+  position: absolute; inset: 4px;
+  border: 1px solid rgba(184,134,11,.3);
+  border-radius: 50%;
+}
+.hd-text h1 {
+  font-family: var(--serif);
+  font-size: 22px; font-weight: 600;
+  color: #f0e8d0; letter-spacing: .08em;
+}
+.hd-text p { font-size: 14px; color: rgba(200,191,170,.7); letter-spacing: .06em; margin-top: 2px; }
+.hd-badge {
+  margin-left: auto;
+  background: rgba(184,134,11,.15);
+  border: 1px solid rgba(184,134,11,.4);
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-family: var(--serif); font-size: 13px; color: var(--gold2);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+
+/* ── Main layout ── */
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 1300px; margin: 0 auto;
+  padding: 32px 24px 60px;
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media(max-width:960px) { .wrap { grid-template-columns: 1fr; } }
+
+/* ── Panel card ── */
+.card {
+  background: rgba(245,240,232,.95);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--rust2), var(--teal));
+}
+.card-head {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 10px;
+}
+.card-head h2 {
+  font-family: var(--serif); font-size: 16px; font-weight: 600;
+  color: var(--ink); letter-spacing: .08em; text-transform: uppercase;
+}
+.card-icon { font-size: 22px; }
+.card-body { padding: 20px; }
+
+/* ── Formula display ── */
+.formula-plate {
+  background: var(--ink);
+  border-radius: 4px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.formula-plate::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -45deg, transparent 0, transparent 8px,
+    rgba(184,134,11,.03) 8px, rgba(184,134,11,.03) 9px
+  );
+}
+.formula-label {
+  font-size: 13px; letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(200,191,170,.5); margin-bottom: 10px; font-family: var(--serif);
+}
+.formula-main {
+  font-family: var(--mono); font-size: 20px; font-weight: 500;
+  color: #f0e8d0; letter-spacing: .04em; line-height: 1.7;
+  position: relative; z-index: 1;
+}
+.formula-main .var-f   { color: #f4a261; }
+.formula-main .var-Z   { color: #80cbc4; }
+.formula-main .var-p   { color: #ce93d8; }
+.formula-main .var-D   { color: #81d4fa; }
+.formula-main .var-c   { color: #a5d6a7; }
+.formula-main .frac    { color: #f0e8d0; }
+.formula-main .pi      { color: var(--gold2); }
+.formula-sub {
+  font-size: 13px; color: rgba(200,191,170,.55);
+  font-family: var(--mono); margin-top: 10px; line-height: 1.8;
+  position: relative; z-index: 1;
+}
+
+/* ── Sliders ── */
+.param-group { margin-bottom: 18px; }
+.param-header {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 7px;
+}
+.param-name {
+  font-family: var(--serif); font-size: 15px; font-weight: 600;
+  color: var(--ink); letter-spacing: .06em;
+}
+.param-sym {
+  font-family: var(--mono); font-size: 15px;
+  padding: 2px 8px; border-radius: 3px;
+  font-weight: 700;
+}
+.sym-f  { background: rgba(244,162,97,.18); color: #b5481a; }
+.sym-Z  { background: rgba(128,203,196,.18); color: #1a6b66; }
+.sym-p  { background: rgba(206,147,216,.18); color: #7b1fa2; }
+.sym-D  { background: rgba(129,212,250,.18); color: #0277bd; }
+.sym-c  { background: rgba(165,214,167,.18); color: #2e7d32; }
+.sym-d  { background: rgba(165,214,167,.18); color: #2e7d32; }
+.param-val {
+  margin-left: auto;
+  font-family: var(--mono); font-size: 18px; font-weight: 700;
+  color: var(--ink);
+}
+.param-val .unit { font-size: 13px; font-weight: 400; color: var(--dim); margin-left: 2px; }
+.param-desc { font-size: 13px; color: var(--dim); margin-bottom: 8px; line-height: 1.5; }
+
+.slider-track {
+  width: 100%; appearance: none; -webkit-appearance: none;
+  height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+  border: none;
+}
+.slider-track::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  border: 2px solid white;
+  transition: transform .15s;
+}
+.slider-track::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.sl-f  { background: linear-gradient(90deg, #fde8d8, #f4a261); }
+.sl-f::-webkit-slider-thumb  { background: #c05520; }
+.sl-Z  { background: linear-gradient(90deg, #e0f2f1, #80cbc4); }
+.sl-Z::-webkit-slider-thumb  { background: #00897b; }
+.sl-p  { background: linear-gradient(90deg, #f3e5f5, #ce93d8); }
+.sl-p::-webkit-slider-thumb  { background: #8e24aa; }
+.sl-D  { background: linear-gradient(90deg, #e1f5fe, #81d4fa); }
+.sl-D::-webkit-slider-thumb  { background: #0288d1; }
+.sl-c  { background: linear-gradient(90deg, #e8f5e9, #a5d6a7); }
+.sl-c::-webkit-slider-thumb  { background: #388e3c; }
+
+.range-hint {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--dim); font-family: var(--mono);
+  margin-top: 4px;
+}
+
+/* ── Z toggle ── */
+.z-toggle { display: flex; gap: 8px; margin-bottom: 4px; }
+.z-btn {
+  flex: 1; padding: 10px 0; border-radius: 4px;
+  border: 1.5px solid var(--line);
+  background: white; cursor: pointer;
+  font: 600 14px var(--mono); color: var(--dim);
+  transition: all .2s; text-align: center;
+}
+.z-btn:hover { border-color: var(--teal); color: var(--teal); }
+.z-btn.active { background: var(--teal); border-color: var(--teal); color: white; }
+
+/* ── Result display ── */
+.result-card {
+  background: var(--ink); border-radius: 4px;
+  padding: 20px; margin-top: 4px;
+  position: relative; overflow: hidden;
+}
+.result-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 20%, rgba(184,134,11,.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.result-label {
+  font-family: var(--serif); font-size: 13px; letter-spacing: .1em;
+  color: rgba(200,191,170,.5); text-transform: uppercase; margin-bottom: 8px;
+}
+.result-main {
+  display: flex; align-items: baseline; gap: 8px;
+}
+.result-tc {
+  font-family: var(--mono); font-size: 48px; font-weight: 700;
+  color: var(--gold2); line-height: 1;
+  text-shadow: 0 0 30px rgba(212,160,23,.25);
+  transition: all .3s ease;
+}
+.result-unit { font-family: var(--mono); font-size: 20px; color: rgba(200,191,170,.6); }
+.result-sub {
+  margin-top: 10px;
+  display: flex; gap: 14px; flex-wrap: wrap;
+}
+.rs-item { font-family: var(--mono); font-size: 14px; color: rgba(200,191,170,.55); }
+.rs-item strong { color: rgba(200,191,170,.85); }
+
+/* ── Beta indicator ── */
+.beta-section {
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid rgba(200,191,170,.2);
+}
+.beta-label { font-size: 14px; color: rgba(200,191,170,.5); margin-bottom: 10px; font-family: var(--serif); letter-spacing: .06em; }
+.beta-row { display: flex; align-items: center; gap: 10px; }
+.beta-input-wrap { flex: 1; }
+.beta-input {
+  width: 100%; padding: 6px 10px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(200,191,170,.2);
+  border-radius: 4px; color: #f0e8d0; font: 700 16px var(--mono);
+  text-align: right;
+}
+.beta-input:focus { outline: none; border-color: var(--gold); }
+.beta-status {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.beta-tag {
+  font-size: 13px; padding: 4px 12px; border-radius: 2px; font-family: var(--serif);
+  letter-spacing: .06em; text-align: center; white-space: nowrap;
+}
+.bt-ok   { background: rgba(62,201,122,.2); color: #3ec97a; border: 1px solid rgba(62,201,122,.3); }
+.bt-warn { background: rgba(232,191,42,.2); color: #e8bf2a; border: 1px solid rgba(232,191,42,.3); }
+.bt-bad  { background: rgba(224,82,82,.2);  color: #e05252; border: 1px solid rgba(224,82,82,.3); }
+/* ── Vehicle type selector (Table 2-1) ── */
+.vtype-label {
+  font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: rgba(200,191,170,.45); font-family: var(--serif);
+  margin-bottom: 8px;
+}
+.vtype-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 6px; margin-bottom: 14px;
+}
+.vtype-btn {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 10px 6px;
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(200,191,170,.2);
+  border-radius: 6px; cursor: pointer;
+  transition: all .2s; text-align: center;
+}
+.vtype-btn:hover {
+  border-color: rgba(184,134,11,.5);
+  background: rgba(184,134,11,.07);
+}
+.vtype-btn.active {
+  border-color: var(--gold);
+  background: rgba(184,134,11,.15);
+  box-shadow: 0 0 0 2px rgba(184,134,11,.2);
+}
+.vt-name {
+  font-family: var(--serif); font-size: 12px; font-weight: 600;
+  color: #e8dfc8; line-height: 1.3; letter-spacing: .02em;
+}
+.vt-sub {
+  font-size: 11px; color: rgba(200,191,170,.5);
+  font-family: var(--body); line-height: 1.3;
+}
+.vt-range {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: var(--gold2); margin-top: 2px;
+}
+.vtype-btn.active .vt-range { color: #f5c842; }
+.beta-range-hint {
+  font-size: 12px; color: rgba(200,191,170,.45);
+  text-align: center; margin-top: 5px;
+  font-family: var(--mono); letter-spacing: .03em;
+}
+
+.temax-need { font-family: var(--mono); font-size: 14px; color: rgba(200,191,170,.55); margin-top: 6px; }
+
+/* ── Right column ── */
+.right-col { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Sensitivity charts ── */
+.charts-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media(max-width:700px) { .charts-grid { grid-template-columns: 1fr; } }
+.chart-wrap { position: relative; height: 240px; }
+
+/* ── Waterfall bar ── */
+.waterfall {
+  display: flex; align-items: flex-end; gap: 2px;
+  height: 80px; margin: 12px 0 6px;
+}
+.wf-bar {
+  flex: 1; border-radius: 2px 2px 0 0;
+  min-height: 4px; position: relative;
+  transition: height .4s cubic-bezier(.34,1.56,.64,1);
+}
+.wf-bar::after {
+  content: attr(data-label);
+  position: absolute; top: -18px; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono); font-size: 12px; color: var(--dim);
+  white-space: nowrap;
+}
+
+/* ── Sensitivity table ── */
+.sens-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.sens-table th {
+  text-align: left; padding: 9px 12px;
+  font-family: var(--serif); font-size: 13px; font-weight: 600;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--dim); border-bottom: 1.5px solid var(--line);
+}
+.sens-table td { padding: 10px 12px; border-bottom: 1px solid rgba(200,191,170,.4); font-size: 14px; }
+.sens-table tr:last-child td { border-bottom: none; }
+.sens-table tr:hover td { background: rgba(200,191,170,.15); }
+.pct-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.pct-bar {
+  flex: 1; height: 6px; border-radius: 3px;
+  background: var(--line); overflow: hidden;
+}
+.pct-fill {
+  height: 100%; border-radius: 3px;
+  transition: width .5s ease;
+}
+.pct-val { font-family: var(--mono); font-size: 14px; color: var(--dim); min-width: 48px; text-align: right; }
+.param-pill {
+  display: inline-block; padding: 3px 10px; border-radius: 3px;
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+}
+
+/* ── Comparison table ── */
+.cmp-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cmp-table th {
+  background: var(--ink); color: rgba(200,191,170,.8);
+  font-family: var(--serif); font-size: 13px; font-weight: 600;
+  letter-spacing: .07em; padding: 10px 12px; text-align: left;
+}
+.cmp-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.cmp-table tr:last-child td { border-bottom: none; }
+.cmp-table tr.base td { background: rgba(26,92,107,.08); font-weight: 600; }
+.cmp-tc { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--rust); }
+.cmp-delta { font-family: var(--mono); font-size: 13px; }
+.delta-up   { color: #2e7d32; }
+.delta-down { color: var(--rust2); }
+.delta-same { color: var(--dim); }
+
+/* ── Info notes ── */
+.note {
+  background: rgba(26,92,107,.08);
+  border-left: 3px solid var(--teal);
+  border-radius: 0 4px 4px 0;
+  padding: 12px 16px; margin: 12px 0;
+  font-size: 15px; color: var(--teal); line-height: 1.6;
+}
+.note strong { font-weight: 600; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--line); margin: 16px 0; }
+
+/* ── Reset button ── */
+.reset-btn {
+  width: 100%; padding: 12px 0;
+  background: transparent; border: 1.5px solid var(--line);
+  border-radius: 4px; cursor: pointer;
+  font: 600 15px var(--serif); color: var(--dim);
+  letter-spacing: .08em; text-transform: uppercase;
+  transition: all .2s;
+}
+.reset-btn:hover { border-color: var(--rust2); color: var(--rust2); background: rgba(192,71,46,.05); }
+
+/* ── Animate ── */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.updating { animation: pulse .3s ease; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--paper); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+user-select: none
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">Ω</div>
+  <div class="hd-text">
+    <h1>离合器静摩擦力矩 T<sub style="font-size:17px">c</sub> 计算工具</h1>
+    <p>《汽车设计》第6版（闵海涛·王建华）· 第二章 · 公式 (2-7) · 参数灵敏度分析</p>
+  </div>
+  <div class="hd-badge">单片摩擦离合器</div>
+</header>
+
+<div class="wrap">
+
+  <!-- ══ LEFT: Control Panel ══ -->
+  <div class="left-col">
+
+    <!-- Formula card -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-head">
+        <span class="card-icon">📐</span>
+        <h2>公式 (2-7) 参数输入</h2>
+      </div>
+      <div class="card-body">
+
+        <div class="formula-plate">
+          <div class="formula-label">§ 第二章 · 公式 (2-7) — 离合器静摩擦力矩</div>
+          <div class="formula-main">
+            T<sub>c</sub> = <span class="pi">π</span><span class="frac">/12</span> · <span class="var-f">f</span> · <span class="var-Z">Z</span> · <span class="var-p">p₀</span> · <span class="var-D">D³</span> · (1 − <span class="var-c">c³</span>)
+          </div>
+          <div class="formula-sub">
+            c = d/D（内外径之比，0.53~0.70）<br>
+            单位: f无量纲, Z无量纲, p₀[N/mm²], D[mm] → Tc[N·mm]
+          </div>
+        </div>
+
+        <!-- f -->
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-name">摩擦系数</span>
+            <span class="param-sym sym-f">f</span>
+            <span class="param-val" id="val-f">0.25 <span class="unit">—</span></span>
+          </div>
+          <div class="param-desc">普通有机摩擦材料取 0.25~0.30；粉末冶金取 0.35~0.50</div>
+          <input type="range" class="slider-track sl-f" id="sl-f"
+            min="0.15" max="0.50" step="0.01" value="0.25"
+            oninput="update()">
+          <div class="range-hint"><span>0.15</span><span>0.50</span></div>
+        </div>
+
+        <!-- Z -->
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-name">摩擦面数</span>
+            <span class="param-sym sym-Z">Z</span>
+            <span class="param-val" id="val-Z">2 <span class="unit">面</span></span>
+          </div>
+          <div class="param-desc">单片离合器 Z=2，双片离合器 Z=4</div>
+          <div class="z-toggle">
+            <button class="z-btn active" id="z2" onclick="setZ(2)">单片 Z = 2</button>
+            <button class="z-btn" id="z4" onclick="setZ(4)">双片 Z = 4</button>
+          </div>
+        </div>
+
+        <!-- p0 -->
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-name">摩擦面单位压力</span>
+            <span class="param-sym sym-p">p₀</span>
+            <span class="param-val" id="val-p">0.160 <span class="unit">N/mm²</span></span>
+          </div>
+          <div class="param-desc">非石棉橡胶基材料非频繁型: 0.15~0.30 MPa</div>
+          <input type="range" class="slider-track sl-p" id="sl-p"
+            min="0.10" max="0.60" step="0.005" value="0.160"
+            oninput="update()">
+          <div class="range-hint"><span>0.10</span><span>0.60</span></div>
+        </div>
+
+        <!-- D -->
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-name">摩擦片外径</span>
+            <span class="param-sym sym-D">D</span>
+            <span class="param-val" id="val-D">355 <span class="unit">mm</span></span>
+          </div>
+          <div class="param-desc">注意: T<sub>c</sub> ∝ D³，外径对力矩影响最大（三次方关系）</div>
+          <input type="range" class="slider-track sl-D" id="sl-D"
+            min="160" max="450" step="5" value="355"
+            oninput="update()">
+          <div class="range-hint"><span>160 mm</span><span>450 mm</span></div>
+        </div>
+
+        <!-- c = d/D -->
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-name">内外径比</span>
+            <span class="param-sym sym-c">c = d/D</span>
+            <span class="param-val" id="val-c">0.501 <span class="unit">（d = 178 mm）</span></span>
+          </div>
+          <div class="param-desc">c = d/D，一般在 0.53~0.70 之间；c 越小，摩擦面积越大</div>
+          <input type="range" class="slider-track sl-c" id="sl-c"
+            min="0.40" max="0.80" step="0.005" value="0.501"
+            oninput="update()">
+          <div class="range-hint"><span>0.40</span><span>0.80</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Result -->
+        <div class="result-card">
+          <div class="result-label">§ 计算结果 — 离合器静摩擦力矩</div>
+          <div class="result-main">
+            <span class="result-tc" id="tc-display">—</span>
+            <span class="result-unit">N·m</span>
+          </div>
+          <div class="result-sub">
+            <span class="rs-item">Rc = <strong id="rc-val">—</strong> mm</span>
+            <span class="rs-item">F = <strong id="F-val">—</strong> N</span>
+            <span class="rs-item">Tc = <strong id="tc-nmm">—</strong> N·mm</span>
+          </div>
+
+          <!-- β section -->
+          <div class="beta-section">
+            <div class="beta-label">§ 后备系数校验 — T<sub>c</sub> = β · T<sub>emax</sub>，β 应大于 1</div>
+
+            <!-- Table 2-1 vehicle type selector -->
+            <div class="vtype-label">车辆类型（教材表 2-1）</div>
+            <div class="vtype-grid" id="vtype-grid">
+              <button class="vtype-btn active" onclick="selectVtype(0)">
+                <span class="vt-name">乘用车 &amp; 轻型商用车</span>
+                <span class="vt-sub">最大总质量 &lt; 6 t</span>
+                <span class="vt-range">β = 1.20 ~ 1.75</span>
+              </button>
+              <button class="vtype-btn" onclick="selectVtype(1)">
+                <span class="vt-name">中型商用车</span>
+                <span class="vt-sub">最大总质量 6 ~ 14 t</span>
+                <span class="vt-range">β = 1.50 ~ 2.25</span>
+              </button>
+              <button class="vtype-btn" onclick="selectVtype(2)">
+                <span class="vt-name">挂　　车</span>
+                <span class="vt-sub">重型牵引车辆</span>
+                <span class="vt-range">β = 1.80 ~ 4.00</span>
+              </button>
+            </div>
+
+            <div class="beta-row">
+              <div style="flex:1">
+                <div style="font-size:13px;color:rgba(200,191,170,.5);margin-bottom:6px;font-family:var(--serif)">发动机最大转矩 T<sub>emax</sub> (N·m)</div>
+                <input type="number" class="beta-input" id="temax-input"
+                  value="200" min="50" max="2000" step="10"
+                  oninput="update()">
+              </div>
+              <div class="beta-status">
+                <div class="beta-tag bt-ok" id="beta-tag">β = —</div>
+                <div class="beta-range-hint" id="beta-range-hint">推荐范围: 1.20 ~ 1.75</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="reset-btn" style="margin-top:14px" onclick="resetDefaults()">↺ 恢复题目默认值</button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT: Charts & Analysis ══ -->
+  <div class="right-col">
+
+    <!-- Sensitivity charts -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-icon">📊</span>
+        <h2>各参数对 T<sub>c</sub> 的影响曲线（单参数扫描）</h2>
+      </div>
+      <div class="card-body">
+        <div class="note">
+          <strong>分析方法：</strong>固定其他参数不变，单独改变某一参数，观察 T<sub>c</sub> 的变化趋势。
+          红色虚线为当前设定值，蓝色曲线为 T<sub>c</sub> 随该参数变化。
+        </div>
+        <div class="charts-grid">
+          <div><div style="font-family:var(--serif);font-size:14px;color:var(--dim);text-align:center;margin-bottom:8px;letter-spacing:.06em">f 的影响（摩擦系数）</div><div class="chart-wrap"><canvas id="chart-f"></canvas></div></div>
+          <div><div style="font-family:var(--serif);font-size:14px;color:var(--dim);text-align:center;margin-bottom:8px;letter-spacing:.06em">p₀ 的影响（单位压力）</div><div class="chart-wrap"><canvas id="chart-p"></canvas></div></div>
+          <div><div style="font-family:var(--serif);font-size:14px;color:var(--dim);text-align:center;margin-bottom:8px;letter-spacing:.06em">D 的影响（外径，三次方）</div><div class="chart-wrap"><canvas id="chart-D"></canvas></div></div>
+          <div><div style="font-family:var(--serif);font-size:14px;color:var(--dim);text-align:center;margin-bottom:8px;letter-spacing:.06em">c 的影响（内外径比）</div><div class="chart-wrap"><canvas id="chart-c"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensitivity ranking -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-icon">⚖️</span>
+        <h2>参数灵敏度排名（±10% 变化时 Tc 变化量）</h2>
+      </div>
+      <div class="card-body">
+        <div class="note">
+          各参数在当前值基础上 <strong>增加10%</strong> 时，T<sub>c</sub> 的相对变化幅度。数值越大，该参数的影响越显著。
+        </div>
+        <table class="sens-table" id="sens-table">
+          <thead><tr>
+            <th>参数</th><th>说明</th><th>当前值</th>
+            <th>+10% 后 Tc 变化</th><th>理论关系</th>
+          </tr></thead>
+          <tbody id="sens-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Comparison table -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-icon">🔢</span>
+        <h2>关键工况对比表</h2>
+      </div>
+      <div class="card-body">
+        <table class="cmp-table" id="cmp-table">
+          <thead><tr>
+            <th>工况</th><th>f</th><th>Z</th><th>p₀ (N/mm²)</th>
+            <th>D (mm)</th><th>c</th><th>T<sub>c</sub> (N·m)</th><th>vs 题目基准</th>
+          </tr></thead>
+          <tbody id="cmp-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// TABLE 2-1  后备系数 β 取值范围
+// ═══════════════════════════════════════════════
+const VTYPE_TABLE = [
+  { label: '乘用车及最大总质量小于6t的商用车', min: 1.20, max: 1.75 },
+  { label: '最大总质量为6~14t的商用车',       min: 1.50, max: 2.25 },
+  { label: '挂车',                            min: 1.80, max: 4.00 },
+];
+let currentVtype = 0;
+
+function selectVtype(idx) {
+  currentVtype = idx;
+  document.querySelectorAll('.vtype-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+  update();
+}
+
+// ═══════════════════════════════════════════════
+// DEFAULTS (题目给定值)
+// ═══════════════════════════════════════════════
+const DEFAULTS = { f:0.25, Z:2, p:0.160, D:355, c:0.501 };
+let charts = {};
+
+// ═══════════════════════════════════════════════
+// FORMULA  Tc = π/12 · f · Z · p0 · D³ · (1-c³)
+// returns Tc in N·mm
+// ═══════════════════════════════════════════════
+function calcTc(f, Z, p0, D, c) {
+  return (Math.PI / 12) * f * Z * p0 * Math.pow(D, 3) * (1 - Math.pow(c, 3));
+}
+// Rc = (D+d)/4 = D(1+c)/4  mm
+function calcRc(D, c) { return D * (1 + c) / 4; }
+// F = p0 * π(R²-r²) = p0 * π(D²-d²)/4 = p0*π*D²(1-c²)/4
+function calcF(p0, D, c) { return p0 * Math.PI * D * D * (1 - c * c) / 4; }
+
+// ═══════════════════════════════════════════════
+// READ INPUTS
+// ═══════════════════════════════════════════════
+function getParams() {
+  return {
+    f: parseFloat(document.getElementById('sl-f').value),
+    Z: parseInt(document.getElementById('val-Z').textContent),
+    p: parseFloat(document.getElementById('sl-p').value),
+    D: parseFloat(document.getElementById('sl-D').value),
+    c: parseFloat(document.getElementById('sl-c').value),
+  };
+}
+
+let currentZ = 2;
+function setZ(z) {
+  currentZ = z;
+  document.getElementById('z2').classList.toggle('active', z === 2);
+  document.getElementById('z4').classList.toggle('active', z === 4);
+  document.getElementById('val-Z').innerHTML = z + ' <span class="unit">面</span>';
+  update();
+}
+
+// ═══════════════════════════════════════════════
+// MAIN UPDATE
+// ═══════════════════════════════════════════════
+function update() {
+  const p = getParams();
+  p.Z = currentZ;
+
+  // Update displayed values
+  document.getElementById('val-f').innerHTML = p.f.toFixed(2) + ' <span class="unit">—</span>';
+  document.getElementById('val-p').innerHTML = p.p.toFixed(3) + ' <span class="unit">N/mm²</span>';
+  document.getElementById('val-D').innerHTML = p.D.toFixed(0) + ' <span class="unit">mm</span>';
+  const d = p.D * p.c;
+  document.getElementById('val-c').innerHTML =
+    p.c.toFixed(3) + ' <span class="unit">（d = ' + d.toFixed(1) + ' mm）</span>';
+
+  // Compute Tc
+  const Tc_nmm = calcTc(p.f, p.Z, p.p, p.D, p.c);
+  const Tc_nm  = Tc_nmm / 1e3;
+  const Rc     = calcRc(p.D, p.c);
+  const F      = calcF(p.p, p.D, p.c);
+
+  // Display result
+  const tcEl = document.getElementById('tc-display');
+  tcEl.textContent = Tc_nm.toFixed(1);
+  tcEl.classList.add('updating');
+  setTimeout(() => tcEl.classList.remove('updating'), 300);
+
+  document.getElementById('rc-val').textContent  = Rc.toFixed(1);
+  document.getElementById('F-val').textContent   = F.toFixed(0);
+  document.getElementById('tc-nmm').textContent  = (Tc_nmm/1000).toFixed(0) + 'k';
+
+  // β check — uses selected vehicle type range from Table 2-1
+  const temax = parseFloat(document.getElementById('temax-input').value) || 200;
+  const beta  = Tc_nm / temax;
+  const betaTag = document.getElementById('beta-tag');
+  const hintEl  = document.getElementById('beta-range-hint');
+  const vt = VTYPE_TABLE[currentVtype];
+  betaTag.textContent = 'β = ' + beta.toFixed(3);
+  if (beta >= vt.min && beta <= vt.max) {
+    betaTag.className = 'beta-tag bt-ok';
+  } else if (beta >= 1.0 && beta < vt.min) {
+    betaTag.className = 'beta-tag bt-warn';
+  } else {
+    betaTag.className = 'beta-tag bt-bad';
+  }
+  if (hintEl) hintEl.textContent = '推荐范围: ' + vt.min.toFixed(2) + ' ~ ' + vt.max.toFixed(2);
+
+  // Update charts
+  updateCharts(p);
+  updateSensitivity(p);
+  updateComparison(p);
+}
+
+// ═══════════════════════════════════════════════
+// CHART HELPER
+// ═══════════════════════════════════════════════
+const chartColors = {
+  line:   '#1a5c6b',
+  fill:   'rgba(26,92,107,.12)',
+  cur:    '#c0472e',
+  grid:   'rgba(200,191,170,.3)',
+  text:   '#7a7060',
+};
+
+function makeChart(id, xData, yData, xLabel, xCur) {
+  const ctx = document.getElementById(id).getContext('2d');
+  if (charts[id]) charts[id].destroy();
+  const curIdx = xData.reduce((best, x, i) =>
+    Math.abs(x - xCur) < Math.abs(xData[best] - xCur) ? i : best, 0);
+
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: xData.map(x => x.toFixed(xData[0] < 10 ? 2 : 0)),
+      datasets: [
+        {
+          data: yData,
+          borderColor: chartColors.line,
+          backgroundColor: chartColors.fill,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        },
+        {
+          // Current value annotation point
+          data: yData.map((y, i) => i === curIdx ? y : null),
+          borderColor: chartColors.cur,
+          backgroundColor: chartColors.cur,
+          pointRadius: 7,
+          pointStyle: 'circle',
+          showLine: false,
+          type: 'scatter',
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.datasetIndex === 0 ?
+              'Tc = ' + (ctx.raw/1e3).toFixed(1) + ' N·m' : '◉ 当前值',
+          },
+          backgroundColor: 'rgba(26,26,46,.9)',
+          titleColor: '#f0e8d0', bodyColor: '#b0a890',
+          borderColor: 'rgba(200,191,170,.3)', borderWidth: 1,
+        },
+        annotation: {
+          annotations: {
+            vline: {
+              type: 'line', xMin: curIdx, xMax: curIdx,
+              borderColor: 'rgba(192,71,46,.5)',
+              borderWidth: 1.5, borderDash: [4,3],
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: chartColors.text, font: { size: 12, family: 'JetBrains Mono' }, maxTicksLimit: 7 },
+          grid: { color: chartColors.grid },
+          title: { display: true, text: xLabel, color: chartColors.text, font: { size: 13, family: 'Cinzel' } }
+        },
+        y: {
+          ticks: { color: chartColors.text, font: { size: 12, family: 'JetBrains Mono' },
+            callback: v => (v/1e3).toFixed(0) + 'kN·m' },
+          grid: { color: chartColors.grid },
+          title: { display: true, text: 'Tc (N·mm)', color: chartColors.text, font: { size: 13 } }
+        }
+      }
+    }
+  });
+}
+
+function linspace(a, b, n) {
+  const arr = [];
+  for (let i = 0; i < n; i++) arr.push(a + (b - a) * i / (n - 1));
+  return arr;
+}
+
+function updateCharts(p) {
+  const N = 60;
+
+  // f chart
+  const fArr = linspace(0.15, 0.50, N);
+  makeChart('chart-f', fArr,
+    fArr.map(f => calcTc(f, p.Z, p.p, p.D, p.c)),
+    'f（摩擦系数）', p.f);
+
+  // p0 chart
+  const pArr = linspace(0.10, 0.60, N);
+  makeChart('chart-p', pArr,
+    pArr.map(p0 => calcTc(p.f, p.Z, p0, p.D, p.c)),
+    'p₀（N/mm²）', p.p);
+
+  // D chart
+  const DArr = linspace(160, 450, N);
+  makeChart('chart-D', DArr,
+    DArr.map(D => calcTc(p.f, p.Z, p.p, D, p.c)),
+    'D（mm）', p.D);
+
+  // c chart
+  const cArr = linspace(0.40, 0.80, N);
+  makeChart('chart-c', cArr,
+    cArr.map(c => calcTc(p.f, p.Z, p.p, p.D, c)),
+    'c = d/D', p.c);
+}
+
+// ═══════════════════════════════════════════════
+// SENSITIVITY TABLE
+// ═══════════════════════════════════════════════
+function updateSensitivity(p) {
+  const base = calcTc(p.f, p.Z, p.p, p.D, p.c);
+  const k = 0.10; // +10%
+
+  const params = [
+    { key:'D',  label:'D',  sym:'sym-D',  cur:p.D,  pct10: p.D*1.1,  theory:'T<sub>c</sub> ∝ D³（三次方，影响最大）',  color:'#0277bd' },
+    { key:'f',  label:'f',  sym:'sym-f',  cur:p.f,  pct10: p.f*1.1,  theory:'T<sub>c</sub> ∝ f（线性）',               color:'#b5481a' },
+    { key:'p',  label:'p₀', sym:'sym-p',  cur:p.p,  pct10: p.p*1.1,  theory:'T<sub>c</sub> ∝ p₀（线性）',             color:'#7b1fa2' },
+    { key:'c',  label:'c',  sym:'sym-c',  cur:p.c,  pct10: p.c*1.1,  theory:'T<sub>c</sub> ∝ (1−c³)，c增大力矩减小', color:'#2e7d32' },
+  ];
+
+  const rows = params.map(pm => {
+    let newPms = {...p};
+    if (pm.key==='D') newPms.D = pm.pct10;
+    if (pm.key==='f') newPms.f = pm.pct10;
+    if (pm.key==='p') newPms.p = pm.pct10;
+    if (pm.key==='c') newPms.c = pm.pct10;
+    const newTc = calcTc(newPms.f, newPms.Z, newPms.p, newPms.D, newPms.c);
+    const delta  = (newTc - base) / base * 100;
+    return { ...pm, delta };
+  }).sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+
+  const maxDelta = Math.max(...rows.map(r => Math.abs(r.delta)));
+
+  document.getElementById('sens-body').innerHTML = rows.map(r => `
+    <tr>
+      <td><span class="param-pill ${r.sym}" style="background:${r.color}22;color:${r.color}">${r.label}</span></td>
+      <td style="font-size:14px;color:var(--dim)">${r.theory}</td>
+      <td style="font-family:var(--mono);font-size:15px">${
+        r.key==='D' ? r.cur.toFixed(0)+' mm' :
+        r.key==='p' ? r.cur.toFixed(3)+' N/mm²' :
+        r.cur.toFixed(3)}</td>
+      <td>
+        <div class="pct-bar-wrap">
+          <div class="pct-bar">
+            <div class="pct-fill" style="width:${Math.abs(r.delta)/maxDelta*100}%;background:${r.color}"></div>
+          </div>
+          <span class="pct-val" style="color:${r.delta>0?'#2e7d32':'#c0472e'}">
+            ${r.delta>0?'+':''}${r.delta.toFixed(1)}%
+          </span>
+        </div>
+      </td>
+      <td style="font-size:14px;color:var(--dim)">${
+        r.key==='D' ? '三次方放大效应' :
+        r.key==='c' ? '反向变化（-'+(Math.abs(r.delta)).toFixed(1)+'%）' :
+        '线性正相关'}</td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+// COMPARISON TABLE
+// ═══════════════════════════════════════════════
+function updateComparison(p) {
+  const BASE = DEFAULTS;
+  const baseTc = calcTc(BASE.f, BASE.Z, BASE.p, BASE.D, BASE.c) / 1e3;
+
+  const cases = [
+    { label:'📌 题目基准值', f:BASE.f, Z:BASE.Z, p:BASE.p, D:BASE.D, c:BASE.c, isBase:true },
+    { label:'当前设定值',   f:p.f,    Z:p.Z,    p:p.p,    D:p.D,    c:p.c,    isBase:false },
+    { label:'f↑ 粉末冶金',  f:0.35,   Z:BASE.Z, p:BASE.p, D:BASE.D, c:BASE.c, isBase:false },
+    { label:'双片离合器',   f:BASE.f, Z:4,      p:BASE.p, D:BASE.D, c:BASE.c, isBase:false },
+    { label:'p₀↑ 频繁型',  f:BASE.f, Z:BASE.Z, p:0.25,   D:BASE.D, c:BASE.c, isBase:false },
+    { label:'D↑ +50mm',    f:BASE.f, Z:BASE.Z, p:BASE.p, D:405,    c:BASE.c, isBase:false },
+    { label:'c=0.65 标准', f:BASE.f, Z:BASE.Z, p:BASE.p, D:BASE.D, c:0.65,   isBase:false },
+  ];
+
+  document.getElementById('cmp-body').innerHTML = cases.map(cs => {
+    const tc = calcTc(cs.f, cs.Z, cs.p, cs.D, cs.c) / 1e3;
+    const delta = (tc - baseTc) / baseTc * 100;
+    const dClass = cs.isBase ? 'delta-same' :
+                   delta > 0.5 ? 'delta-up' : delta < -0.5 ? 'delta-down' : 'delta-same';
+    const dStr = cs.isBase ? '—' :
+      (delta > 0 ? '+' : '') + delta.toFixed(1) + '%';
+    return `<tr class="${cs.isBase?'base':''}">
+      <td style="font-size:14px">${cs.label}</td>
+      <td style="font-family:var(--mono);font-size:14px">${cs.f.toFixed(2)}</td>
+      <td style="font-family:var(--mono);font-size:14px">${cs.Z}</td>
+      <td style="font-family:var(--mono);font-size:14px">${cs.p.toFixed(3)}</td>
+      <td style="font-family:var(--mono);font-size:14px">${cs.D}</td>
+      <td style="font-family:var(--mono);font-size:14px">${cs.c.toFixed(3)}</td>
+      <td class="cmp-tc">${tc.toFixed(1)}</td>
+      <td class="cmp-delta ${dClass}">${dStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════
+function resetDefaults() {
+  document.getElementById('sl-f').value = DEFAULTS.f;
+  document.getElementById('sl-p').value = DEFAULTS.p;
+  document.getElementById('sl-D').value = DEFAULTS.D;
+  document.getElementById('sl-c').value = DEFAULTS.c;
+  document.getElementById('temax-input').value = 200;
+  setZ(DEFAULTS.Z);
+  update();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+// Override Z getter since we store Z in currentZ
+const origGetParams = getParams;
+window.getParams = function() {
+  return {
+    f: parseFloat(document.getElementById('sl-f').value),
+    Z: currentZ,
+    p: parseFloat(document.getElementById('sl-p').value),
+    D: parseFloat(document.getElementById('sl-D').value),
+    c: parseFloat(document.getElementById('sl-c').value),
+  };
+};
+
+// Initialize val-Z span
+document.getElementById('val-Z').innerHTML = '2 <span class="unit">面</span>';
+
+window.addEventListener('load', () => { update(); });
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+if (e.key === 'F12' || 
+(e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+(e.ctrlKey && e.key === 'U') ||
+(e.ctrlKey && e.key === 'S')) {
+e.preventDefault();
+return false;
+}
+});
+
+</script>
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U') ||
+        (e.ctrlKey && e.key === 'S')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
+
+</body>
+</html>
